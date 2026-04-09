@@ -1,0 +1,24 @@
+{
+  "total_days": 100,
+  "chat_id": -1003784598569,
+  "participants": [
+    {
+      "name": "Егор",
+      "user_id": 496806048,
+      "current_day": 48,
+      "done_today": false
+    },
+    {
+      "name": "Сергей",
+      "user_id": null,
+      "current_day": 48,
+      "done_today": false
+    },
+    {
+      "name": "Санек",
+      "user_id": 5068144282,
+      "current_day": 47,
+      "done_today": false
+    }
+  ]
+}
