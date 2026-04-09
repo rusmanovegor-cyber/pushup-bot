@@ -228,31 +228,41 @@ async def reminder(context: ContextTypes.DEFAULT_TYPE):
 
 
 async def done_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print("Нажата кнопка done")
     query = update.callback_query
     await query.answer()
 
     user = query.from_user
     data = load_data()
 
-    participant = find_participant(data, user_id=user.id)
+    p = find_participant(data, user_id=user.id)
 
-    if participant is None:
-        variants = []
-        if user.first_name:
-            variants.append(user.first_name)
-        full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
-        if full_name:
-            variants.append(full_name)
-        if user.username:
-            variants.append(user.username)
-
-        for variant in variants:
-            found = find_participant(data, name=variant)
-            if found:
-                participant = found
-                participant["user_id"] = user.id
+    # если не найден — пробуем привязать по имени
+    if p is None:
+        for participant in data["participants"]:
+            if participant["name"] == user.first_name:
+                p = participant
+                p["user_id"] = user.id
                 break
+
+    if not p:
+        await query.answer("Ты не найден в списке участников", show_alert=True)
+        return
+
+    # 👉 если уже нажал — не спамим
+    if p["done_today"]:
+        await query.answer("Ты уже отметил сегодня 👍")
+        return
+
+    # 👉 ставим галочку
+    p["done_today"] = True
+    save_data(data)
+
+    # 🔥 ВАЖНО: отправляем НОВОЕ сообщение
+    await context.bot.send_message(
+        chat_id=data["chat_id"],
+        text=build_status_text(data),
+        reply_markup=build_keyboard(),
+    )
 
     if not participant:
         await query.answer("Не понял, кто ты. Добавьте участника через /add Имя", show_alert=True)
